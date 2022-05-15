@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
 @Service
-public interface SocketService {
+public interface GameWebSocketService {
     void afterConnectionClosed(WebSocketSession session);
 
     void addSessionPairAndSendMessage(UsersSession pair);

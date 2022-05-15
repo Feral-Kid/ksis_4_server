@@ -1,6 +1,6 @@
 package com.example.ksis_3.service.impl;
 
-import com.example.ksis_3.service.SocketService;
+import com.example.ksis_3.service.GameWebSocketService;
 import com.example.ksis_3.websocket.SessionMessage;
 import com.example.ksis_3.websocket.UserSession;
 import com.example.ksis_3.websocket.UsersSession;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class SocketServiceImpl implements SocketService {
+public class GameWebSocketServiceImpl implements GameWebSocketService {
     private final Gson gson = new Gson();
     private final List<UsersSession> usersSessions = new ArrayList<>();
     private final List<UserSession> users = new ArrayList<>();

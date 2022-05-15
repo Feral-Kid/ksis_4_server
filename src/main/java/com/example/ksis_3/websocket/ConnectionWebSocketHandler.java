@@ -1,10 +1,11 @@
 package com.example.ksis_3.websocket;
 
-import com.example.ksis_3.service.SocketService;
-import com.example.ksis_3.service.impl.SocketServiceImpl;
+import com.example.ksis_3.service.GameWebSocketService;
+import com.example.ksis_3.service.impl.GameWebSocketServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -14,11 +15,11 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 public class ConnectionWebSocketHandler extends TextWebSocketHandler {
 
     private final Gson gson;
-    private final SocketService socketService;
+    private final GameWebSocketService socketService;
 
     public ConnectionWebSocketHandler() {
         this.gson = new Gson();
-        socketService = new SocketServiceImpl();
+        socketService = new GameWebSocketServiceImpl();
     }
 
     @Override
