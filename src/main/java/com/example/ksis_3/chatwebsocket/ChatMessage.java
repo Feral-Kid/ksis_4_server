@@ -6,8 +6,14 @@ import lombok.Value;
 @Value
 @Builder
 public class ChatMessage {
+
     String type;
+
     String userName;
+
     String userId;
-    String message;
+
+    String userMessage;
+
+    String groupId;
 }

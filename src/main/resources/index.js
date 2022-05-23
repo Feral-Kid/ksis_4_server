@@ -19,15 +19,6 @@ socket.onmessage = (e) => {
     console.log("Message received");
 }
 
-document.getElementById("name_button").addEventListener("click", (e) => {
-    e.preventDefault();
-    console.log("name_button event");
-    obj['sessionStatus'] = 'game';
-    obj['userName'] = 'Yura';
-    obj['userChoice'] = 'paper';
-    socket.send(JSON.stringify(obj));
-})
-
 let chatSocket = new WebSocket("ws://localhost:8080/chat")
 let message = {
     userName: "",
@@ -40,8 +31,28 @@ chatSocket.onopen = (e) => {
     message['type'] = "start"
     chatSocket.send(JSON.stringify(message));
     console.log("Socket is open");
+    message['userName'] = "Yura"
+    message['type'] = "message"
+    message['userMessage'] = "privet"
+    chatSocket.send(JSON.stringify(message));
 }
 
 chatSocket.onmessage = (e) => {
     console.log("Message received");
+
+let history = [];
+document.getElementById("name_button").addEventListener("click", (e) => {
+    e.preventDefault();
+    console.log("name_button event");
+    fetch('http://localhost:8080/message/getHistory')
+        .then((response) => {
+            return response.json();
+        })
+        .then((data) => {
+            for (var i=0;i<data.length;i++) {
+                console.log(data[i]);
+            }
+        });
+})
+
 }

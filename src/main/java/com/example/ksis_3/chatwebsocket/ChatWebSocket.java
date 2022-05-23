@@ -2,7 +2,6 @@ package com.example.ksis_3.chatwebsocket;
 
 import com.example.ksis_3.service.ChatWebSocketService;
 import com.example.ksis_3.service.impl.ChatWebSocketServiceImpl;
-import com.example.ksis_3.websocket.SessionMessage;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +16,8 @@ public class ChatWebSocket extends TextWebSocketHandler {
     private final ChatWebSocketService service;
     private final Gson gson;
 
-    public ChatWebSocket() {
-        this.service = new ChatWebSocketServiceImpl();
+    public ChatWebSocket(ChatWebSocketService service) {
+        this.service = service;
         gson = new Gson();;
     }
 

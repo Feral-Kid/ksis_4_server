@@ -1,93 +1,92 @@
 package com.example.ksis_3.service.impl;
 
 import com.example.ksis_3.chatwebsocket.ChatMessage;
-import com.example.ksis_3.chatwebsocket.ChatUser;
-import com.example.ksis_3.chatwebsocket.Session;
+import com.example.ksis_3.chatwebsocket.Room;
+import com.example.ksis_3.exception.MessageSendException;
+import com.example.ksis_3.exception.RoomIsNotPresentException;
 import com.example.ksis_3.service.ChatWebSocketService;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class ChatWebSocketServiceImpl implements ChatWebSocketService {
 
+    private final List<Room> rooms = new ArrayList<>();
     private final Gson gson = new Gson();
-    private final List<Session<ChatUser>> users = new ArrayList<>();
 
-    private void addUser(Session<ChatUser> user) {
-        this.users.add(user);
+    public ChatWebSocketServiceImpl() {
+        createRoom();
     }
 
-    private Optional<Session<ChatUser>> findUserBySession(WebSocketSession session) {
-        return users.stream().filter(o -> o.getSession() == session).findFirst();
+    @Override
+    public String getAllRooms() {
+        return gson.toJson(this.rooms.stream().map( o -> o.getGroupID().toString()).collect(Collectors.toList()));
     }
 
-
-    private void sendMessageToAllUsers(ChatMessage chatMessage) {
-        users.forEach(o ->
-                o.sendMessage(gson.toJson(chatMessage)));
+    @Override
+    public String getHistoryByRoomId(UUID roomId) {
+        Room room = findRoomById(roomId);
+        return room.getChatHistoryAsJSON();
     }
 
-    private void startConnection(ChatMessage message, WebSocketSession session) {
-        log.info(String
-                .format("User with name: %s is joined",
-                        message.getUserName()));
-        addUser(new Session<>(session, new ChatUser(message.getUserName())));
-        sendMessageToAllUsers(ChatMessage.builder()
-                .message(message.getMessage())
-                .userName(message.getUserName())
-                .userId(session.getId())
-                .type("start")
-                .build());
+    private UUID createRoom() {
+        Room room = new Room(this.gson);
+        this.rooms.add(room);
+        return room.getGroupID();
     }
 
-    private void sendMessage(ChatMessage message, WebSocketSession session) {
-        Optional<Session<ChatUser>> optionalChatUserSession = findUserBySession(session);
-        if (optionalChatUserSession.isPresent()) {
-            ChatUser user = optionalChatUserSession.get().getUser();
-            log.info(String
-                    .format("User with name: %s send message: %s", user.getName(), message.getMessage()));
-            sendMessageToAllUsers(ChatMessage.builder()
-                    .message(message.getMessage())
-                    .userName(user.getName())
-                    .userId(session.getId())
-                    .type("message")
-                    .build());
+    private Room findRoomById(UUID uuid) {
+        Optional<Room> roomOptional = this.rooms.stream().filter(o -> o.getGroupID() == uuid).findFirst();
+        if (roomOptional.isPresent()) {
+            return roomOptional.get();
         } else {
-            startConnection(message, session);
+            throw new RoomIsNotPresentException(String.format("Room with id: %s is not present", uuid.toString()));
         }
     }
 
     @Override
     public void handleMessage(WebSocketSession session, ChatMessage message) {
-        if (message.getType().equals("start")) {
-            startConnection(message, session);
-        }
-
-        if (message.getType().equals("message")) {
-           sendMessage(message, session);
+        if (message.getType().equals("create room")) {
+            UUID uuid = createRoom();
+            try {
+                session.sendMessage(new TextMessage(
+                        gson.toJson
+                                (ChatMessage.builder()
+                                        .userMessage("")
+                                        .userId(message.getUserId())
+                                        .type("room created")
+                                        .groupId(uuid.toString())
+                                        .userName(message.getUserName())
+                                        .build())));
+            } catch (IOException e) {
+                throw new MessageSendException(String.format("Failed to send message to user named: %s", message.getUserName()), e);
+            }
+        } else {
+            Room room = findRoomById(UUID.fromString(message.getGroupId()));
+            room.handleMessage(session, message);
         }
     }
 
     @Override
     public void terminateConnection(WebSocketSession session) {
-        Optional<Session<ChatUser>> optionalChatUserSession = findUserBySession(session);
-        if (optionalChatUserSession.isPresent()) {
-            ChatUser user = optionalChatUserSession.get().getUser();
-            log.info(String.format("Connection closed for user with name: %s", user.getName()));
-            this.users.remove(optionalChatUserSession.get());
-            sendMessageToAllUsers(ChatMessage.builder()
-                    .message("")
-                    .userName(user.getName())
-                    .userId(session.getId())
-                    .type("terminate")
-                    .build());
+        Optional<Room> roomOptional = this.rooms.stream().filter(o -> o.isUserPresent(session)).findFirst();
+        if (roomOptional.isPresent()) {
+            Room room = roomOptional.get();
+            room.terminateConnection(session);
+            if (room.isEmpty()) {
+                this.rooms.remove(room);
+            }
         }
     }
 }
