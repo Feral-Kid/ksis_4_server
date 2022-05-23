@@ -47,7 +47,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
     }
 
     private Room findRoomById(UUID uuid) {
-        Optional<Room> roomOptional = this.rooms.stream().filter(o -> o.getGroupID() == uuid).findFirst();
+        Optional<Room> roomOptional = this.rooms.stream().filter(o -> o.getGroupID().equals(uuid)).findFirst();
         if (roomOptional.isPresent()) {
             return roomOptional.get();
         } else {

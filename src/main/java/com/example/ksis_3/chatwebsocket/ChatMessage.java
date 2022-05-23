@@ -16,4 +16,6 @@ public class ChatMessage {
     String userMessage;
 
     String groupId;
+
+    String data;
 }

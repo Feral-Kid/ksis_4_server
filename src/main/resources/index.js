@@ -1,6 +1,6 @@
 
 
-let socket = new WebSocket("ws://localhost:8080/websocket");
+let socket = new WebSocket("ws://localferfrhost:8080/websocket");
 
 let obj = {
     userName: '',
@@ -23,6 +23,7 @@ let chatSocket = new WebSocket("ws://localhost:8080/chat")
 let message = {
     userName: "",
     userId: "",
+    groupId: "",
     userMessage: "",
     type: ""
 }
@@ -37,14 +38,20 @@ chatSocket.onopen = (e) => {
     chatSocket.send(JSON.stringify(message));
 }
 
+let groupId;
+
 chatSocket.onmessage = (e) => {
     console.log("Message received");
+    const data = JSON.parse(e.data);
+    groupId = data['groupId'];
+}
+
 
 let history = [];
 document.getElementById("name_button").addEventListener("click", (e) => {
     e.preventDefault();
     console.log("name_button event");
-    fetch('http://localhost:8080/message/getHistory')
+    fetch('http://localhost:8080/message/getHistory/' + groupId)
         .then((response) => {
             return response.json();
         })
@@ -55,4 +62,4 @@ document.getElementById("name_button").addEventListener("click", (e) => {
         });
 })
 
-}
+

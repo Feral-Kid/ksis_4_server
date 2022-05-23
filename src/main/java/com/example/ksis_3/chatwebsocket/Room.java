@@ -74,6 +74,7 @@ public class Room {
                     .userId(session.getId())
                     .groupId(this.groupID.toString())
                     .type("message")
+                    .data(message.getData())
                     .build();
             addMessageInHistory(newMessage);
             sendMessageToAllUsers(newMessage);
@@ -121,6 +122,7 @@ public class Room {
                     .userId(host.getSession().getId())
                     .type("new host")
                     .groupId(this.groupID.toString())
+                    .data("")
                     .build());
         }
         this.users.remove(session);
@@ -138,6 +140,7 @@ public class Room {
                     .userId(session.getId())
                     .groupId(this.groupID.toString())
                     .type("terminate")
+                    .data("")
                     .build());
         }
     }
