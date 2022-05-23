@@ -58,6 +58,7 @@ public class Room {
                 .userId(session.getId())
                 .groupId(this.groupID.toString())
                 .type("start")
+                .data(message.getData())
                 .build();
         sendMessageToAllUsers(newMessage);
     }
