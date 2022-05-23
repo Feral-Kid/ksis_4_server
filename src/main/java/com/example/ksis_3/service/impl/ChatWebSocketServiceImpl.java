@@ -73,7 +73,12 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                 throw new MessageSendException(String.format("Failed to send message to user named: %s", message.getUserName()), e);
             }
         } else {
-            Room room = findRoomById(UUID.fromString(message.getGroupId()));
+            Room room;
+            if (message.getGroupId().isBlank()) {
+                room = this.rooms.get(0);
+            } else {
+                room = findRoomById(UUID.fromString(message.getGroupId()));
+            }
             room.handleMessage(session, message);
         }
     }

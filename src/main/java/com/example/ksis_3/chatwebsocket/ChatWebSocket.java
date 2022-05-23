@@ -1,7 +1,6 @@
 package com.example.ksis_3.chatwebsocket;
 
 import com.example.ksis_3.service.ChatWebSocketService;
-import com.example.ksis_3.service.impl.ChatWebSocketServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import lombok.extern.slf4j.Slf4j;
