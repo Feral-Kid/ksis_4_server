@@ -14,6 +14,7 @@ public class Room {
 
     private final UUID groupID;
     private final Gson gson;
+    private String name;
     private final List<Session<ChatUser>> users = new ArrayList<>();
     private final List<ChatMessage> history = new ArrayList<>();
     private Session<ChatUser> host;
@@ -25,6 +26,14 @@ public class Room {
     public Room(Gson gson) {
         this.gson = gson;
         groupID = UUID.randomUUID();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     private void addUser(Session<ChatUser> user) {
@@ -52,7 +61,7 @@ public class Room {
         this.history.add(message);
     }
 
-    private void startConnection(ChatMessage message, WebSocketSession session) {
+    public void startConnection(ChatMessage message, WebSocketSession session) {
         log.info(String
                 .format("User with name: %s is joined",
                         message.getUserName()));

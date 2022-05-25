@@ -26,7 +26,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
     private final Gson gson = new Gson();
 
     public ChatWebSocketServiceImpl() {
-        createRoom();
+        createRoom("Chat");
     }
 
     @Override
@@ -40,10 +40,11 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
         return room.getChatHistoryAsJSON();
     }
 
-    private UUID createRoom() {
+    private Room createRoom(String name) {
         Room room = new Room(this.gson);
+        room.setName(name);
         this.rooms.add(room);
-        return room.getGroupID();
+        return room;
     }
 
     private Room findRoomById(UUID uuid) {
@@ -58,7 +59,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
     @Override
     public void handleMessage(WebSocketSession session, ChatMessage message) {
         if (message.getType().equals("create room")) {
-            UUID uuid = createRoom();
+            Room newRoom = createRoom(message.getUserName());
             try {
                 session.sendMessage(new TextMessage(
                         gson.toJson
@@ -66,9 +67,10 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                         .userMessage("")
                                         .userId(message.getUserId())
                                         .type("room created")
-                                        .groupId(uuid.toString())
+                                        .groupId(newRoom.getGroupID().toString())
                                         .userName(message.getUserName())
                                         .build())));
+                newRoom.startConnection(message, session);
             } catch (IOException e) {
                 throw new MessageSendException(String.format("Failed to send message to user named: %s", message.getUserName()), e);
             }
