@@ -12,7 +12,7 @@ public class WebMVCConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/message/getHistory/*").allowedOrigins("*");
+                registry.addMapping("*").allowedOrigins("*");
             }
         };
     }
