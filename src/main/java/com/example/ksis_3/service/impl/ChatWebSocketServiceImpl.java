@@ -31,7 +31,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
 
     @Override
     public String getAllRooms() {
-        return gson.toJson(this.rooms.stream().map( o -> o.getGroupID().toString()).collect(Collectors.toList()));
+        return gson.toJson(this.rooms.stream().map(Room::getInfo).collect(Collectors.toList()));
     }
 
     @Override

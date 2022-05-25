@@ -61,6 +61,10 @@ public class Room {
         this.history.add(message);
     }
 
+    public RoomInfo getInfo() {
+        return RoomInfo.builder().name(this.name).UUID(this.groupID.toString()).build();
+    }
+
     public void startConnection(ChatMessage message, WebSocketSession session) {
         log.info(String
                 .format("User with name: %s is joined",
