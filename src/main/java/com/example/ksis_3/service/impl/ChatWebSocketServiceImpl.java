@@ -89,7 +89,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
         if (roomOptional.isPresent()) {
             Room room = roomOptional.get();
             room.terminateConnection(session);
-            if (room.isEmpty()) {
+            if (room.isEmpty() && room != this.rooms.get(0)) {
                 this.rooms.remove(room);
             }
         }

@@ -38,6 +38,11 @@ public class Room {
         return users.stream().filter(o -> o.getSession() == session).findFirst();
     }
 
+    private void sendMessageToAllUsersExcept(ChatMessage chatMessage, Session<ChatUser> excepted) {
+        users.stream().filter(o -> o != excepted).forEach(o ->
+                o.sendMessage(gson.toJson(chatMessage)));
+    }
+
     private void sendMessageToAllUsers(ChatMessage chatMessage) {
         users.forEach(o ->
                 o.sendMessage(gson.toJson(chatMessage)));
@@ -51,16 +56,25 @@ public class Room {
         log.info(String
                 .format("User with name: %s is joined",
                         message.getUserName()));
-        addUser(new Session<>(session, new ChatUser(message.getUserName())));
+        Session<ChatUser> newUser = new Session<>(session, new ChatUser(message.getUserName()));
+        addUser(newUser);
         ChatMessage newMessage = ChatMessage.builder()
+                .userMessage(message.getUserMessage())
+                .userName(message.getUserName())
+                .userId(session.getId())
+                .groupId(this.groupID.toString())
+                .type("new user")
+                .data(message.getData())
+                .build();
+        sendMessageToAllUsersExcept(newMessage, newUser);
+        newUser.sendMessage(gson.toJson(ChatMessage.builder()
                 .userMessage(message.getUserMessage())
                 .userName(message.getUserName())
                 .userId(session.getId())
                 .groupId(this.groupID.toString())
                 .type("start")
                 .data(message.getData())
-                .build();
-        sendMessageToAllUsers(newMessage);
+                .build()));
     }
 
     private void sendMessage(ChatMessage message, WebSocketSession session) {
@@ -114,6 +128,7 @@ public class Room {
     }
 
     private void removeUser(Session<ChatUser> session) {
+        this.users.remove(session);
         if (this.host == session) {
             Optional<Session<ChatUser>> sessionOptional = this.users.stream().findFirst();
             sessionOptional.ifPresent(o -> host = o);
@@ -126,7 +141,6 @@ public class Room {
                     .data("")
                     .build());
         }
-        this.users.remove(session);
     }
 
     public void terminateConnection(WebSocketSession session) {

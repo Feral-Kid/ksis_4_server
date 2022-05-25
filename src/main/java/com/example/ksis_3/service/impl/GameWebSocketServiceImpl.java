@@ -1,8 +1,9 @@
 package com.example.ksis_3.service.impl;
 
+import com.example.ksis_3.chatwebsocket.Session;
 import com.example.ksis_3.service.GameWebSocketService;
+import com.example.ksis_3.websocket.GameUser;
 import com.example.ksis_3.websocket.SessionMessage;
-import com.example.ksis_3.websocket.UserSession;
 import com.example.ksis_3.websocket.UsersSession;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
 public class GameWebSocketServiceImpl implements GameWebSocketService {
     private final Gson gson = new Gson();
     private final List<UsersSession> usersSessions = new ArrayList<>();
-    private final List<UserSession> users = new ArrayList<>();
+    private final List<Session<GameUser>> users = new ArrayList<>();
 
     @Override
     public void handleMessage(WebSocketSession session, SessionMessage sessionMessage) {
@@ -38,49 +39,49 @@ public class GameWebSocketServiceImpl implements GameWebSocketService {
 
     private void addInQueue(WebSocketSession session, String userName) {
         if (userName != null && !userName.isBlank()) {
-            users.add(new UserSession(userName, session));
+            users.add(new Session<>(session, new GameUser(userName)));
             log.info("Connected with user: " + userName);
         }
     }
 
     private void findPartner() {
-        List<UserSession> activeSessions = users.stream().filter(UserSession::isOpen).limit(2).collect(Collectors.toList());
+        List<Session<GameUser>> activeSessions = users.stream().filter(o -> o.getSession().isOpen()).limit(2).collect(Collectors.toList());
         if (activeSessions.size() > 1) {
             addSessionPairAndSendMessage(new UsersSession(activeSessions.get(0), activeSessions.get(1)));
             log.info(String
                     .format("User with name: %s and user with name: %s is connected",
-                            activeSessions.get(0).getUserName(), activeSessions.get(0).getUserName()));
+                            activeSessions.get(0).getUser().getName(), activeSessions.get(0).getUser().getName()));
             users.remove(activeSessions.get(0));
             users.remove(activeSessions.get(1));
         }
     }
 
     public void afterConnectionClosed(WebSocketSession session) {
-        Optional<UserSession> userSessionOptional = users.stream().filter(userSession -> userSession.getSession() == session).findFirst();
+        Optional<Session<GameUser>> userSessionOptional = users.stream().filter(userSession -> userSession.getSession() == session).findFirst();
         if (userSessionOptional.isPresent()) {
             users.remove(userSessionOptional.get());
-            log.info("Connection closed for user with name: " + userSessionOptional.get().getUserName());
+            log.info("Connection closed for user with name: " + userSessionOptional.get().getUser().getName());
         } else {
             UsersSession terminatedSession = terminateSession(session);
             if (terminatedSession == null)
                 log.info("Connection closed for user with undefined name: ");
             else {
-                log.info("Connection closed for user with name: " + terminatedSession.getFirstUser().getUserName());
-                addInQueue(terminatedSession.getSecondUser().getSession(), terminatedSession.getSecondUser().getUserName());
+                log.info("Connection closed for user with name: " + terminatedSession.getFirstUser().getUser().getName());
+                addInQueue(terminatedSession.getSecondUser().getSession(), terminatedSession.getSecondUser().getUser().getName());
             }
         }
     }
 
     public void addSessionPairAndSendMessage(UsersSession pair) {
 
-        UserSession firstUserSession = pair.getFirstUser();
-        UserSession secondUserSession = pair.getSecondUser();
+        Session<GameUser> firstUserSession = pair.getFirstUser();
+        Session<GameUser> secondUserSession = pair.getSecondUser();
         try {
             firstUserSession.getSession()
                     .sendMessage(new TextMessage(gson
-                            .toJson(new SessionMessage(secondUserSession.getUserName(), "", "start"))));
+                            .toJson(new SessionMessage(secondUserSession.getUser().getName(), "", "start"))));
             secondUserSession.getSession()
-                    .sendMessage(new TextMessage(gson.toJson(new SessionMessage(firstUserSession.getUserName(), "", "start"))));
+                    .sendMessage(new TextMessage(gson.toJson(new SessionMessage(firstUserSession.getUser().getName(), "", "start"))));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -96,12 +97,12 @@ public class GameWebSocketServiceImpl implements GameWebSocketService {
         } else {
             UsersSession userSessionsPair = userSessionsPairOptional.get();
             usersSessions.remove(userSessionsPair);
-            UserSession firstUserSession = userSessionsPair.getFirstUser();
-            UserSession secondUserSession = userSessionsPair.getSecondUser();
+            Session<GameUser> firstUserSession = userSessionsPair.getFirstUser();
+            Session<GameUser> secondUserSession = userSessionsPair.getSecondUser();
             if (firstUserSession.getSession() == session) {
                 try {
                     secondUserSession.getSession()
-                            .sendMessage(new TextMessage(gson.toJson(new SessionMessage(firstUserSession.getUserName(), "", "terminate"))));
+                            .sendMessage(new TextMessage(gson.toJson(new SessionMessage(firstUserSession.getUser().getName(), "", "terminate"))));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -109,7 +110,7 @@ public class GameWebSocketServiceImpl implements GameWebSocketService {
             } else {
                 try {
                     firstUserSession.getSession()
-                            .sendMessage(new TextMessage(gson.toJson(new SessionMessage(secondUserSession.getUserName(), "", "terminate"))));
+                            .sendMessage(new TextMessage(gson.toJson(new SessionMessage(secondUserSession.getUser().getName(), "", "terminate"))));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -124,40 +125,40 @@ public class GameWebSocketServiceImpl implements GameWebSocketService {
                 .filter( o -> ((o.getFirstUser().getSession() == session) || (o.getSecondUser().getSession() == session))).findFirst();
         if (userSessionsPairOptional.isPresent()) {
             UsersSession userSessionsPair = userSessionsPairOptional.get();
-            UserSession firstUserSession = userSessionsPair.getFirstUser();
-            UserSession secondUserSession = userSessionsPair.getSecondUser();
+            Session<GameUser> firstUserSession = userSessionsPair.getFirstUser();
+            Session<GameUser> secondUserSession = userSessionsPair.getSecondUser();
             if (firstUserSession.getSession() == session) {
-                if (!(secondUserSession.getUserChoice() == null)) {
+                if (!(secondUserSession.getUser().getUserChoice() == null)) {
                     try {
                         firstUserSession.getSession()
                                 .sendMessage(new TextMessage(gson
-                                        .toJson(new SessionMessage(secondUserSession.getUserName(), secondUserSession.getUserChoice(), "game"))));
+                                        .toJson(new SessionMessage(secondUserSession.getUser().getName(), secondUserSession.getUser().getUserChoice(), "game"))));
                         secondUserSession.getSession()
-                                .sendMessage(new TextMessage(gson.toJson(new SessionMessage(firstUserSession.getUserName(), userChoice, "game"))));
+                                .sendMessage(new TextMessage(gson.toJson(new SessionMessage(firstUserSession.getUser().getName(), userChoice, "game"))));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    secondUserSession.setUserChoice(null);
-                    firstUserSession.setUserChoice(null);
+                    secondUserSession.getUser().setUserChoice(null);
+                    firstUserSession.getUser().setUserChoice(null);
                 } else {
-                    firstUserSession.setUserChoice(userChoice);
+                    firstUserSession.getUser().setUserChoice(userChoice);
                 }
             }
             if (secondUserSession.getSession() == session) {
-                if (!(firstUserSession.getUserChoice() == null)) {
+                if (!(firstUserSession.getUser().getUserChoice() == null)) {
                     try {
                         firstUserSession.getSession()
                                 .sendMessage(new TextMessage(gson
-                                        .toJson(new SessionMessage(secondUserSession.getUserName(), userChoice, "game"))));
+                                        .toJson(new SessionMessage(secondUserSession.getUser().getName(), userChoice, "game"))));
                         secondUserSession.getSession()
-                                .sendMessage(new TextMessage(gson.toJson(new SessionMessage(firstUserSession.getUserName(), firstUserSession.getUserChoice(), "game"))));
+                                .sendMessage(new TextMessage(gson.toJson(new SessionMessage(firstUserSession.getUser().getName(), firstUserSession.getUser().getUserChoice(), "game"))));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    secondUserSession.setUserChoice(null);
-                    firstUserSession.setUserChoice(null);
+                    secondUserSession.getUser().setUserChoice(null);
+                    firstUserSession.getUser().setUserChoice(null);
                 } else {
-                    secondUserSession.setUserChoice(userChoice);
+                    secondUserSession.getUser().setUserChoice(userChoice);
                 }
             }
         }
