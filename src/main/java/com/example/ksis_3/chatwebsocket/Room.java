@@ -152,15 +152,15 @@ public class Room {
         }
     }
 
-    public void startGame() {
-        sendMessageToAllUsers(ChatMessage.builder()
+    public void startGame(Session<ChatUser> exceptedUser) {
+        sendMessageToAllUsersExcept(ChatMessage.builder()
                 .data("")
                 .groupId(this.groupID.toString())
                 .userId(host.getUser().getUuid().toString())
                 .userMessage("")
                 .userName(host.getUser().getName())
                 .type("game is started")
-                .build());
+                .build(), exceptedUser);
     }
 
     public String getChatHistoryAsJSON() {
@@ -178,7 +178,7 @@ public class Room {
             Optional<Session<ChatUser>> optionalChatUserSession = findUserBySession(session);
             if (optionalChatUserSession.isPresent()) {
                 if (optionalChatUserSession.get() == host) {
-                    startGame();
+                    startGame(host);
                 } else {
                     throw new UserIsNotAHostException(String.format("User with name: %s isn't host", optionalChatUserSession.get().getUser().getName()));
                 }
