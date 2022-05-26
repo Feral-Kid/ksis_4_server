@@ -153,7 +153,14 @@ public class Room {
     }
 
     public void startGame() {
-
+        sendMessageToAllUsers(ChatMessage.builder()
+                .data("")
+                .groupId(this.groupID.toString())
+                .userId(host.getUser().getUuid().toString())
+                .userMessage("")
+                .userName(host.getUser().getName())
+                .type("game is started")
+                .build());
     }
 
     public String getChatHistoryAsJSON() {
