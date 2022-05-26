@@ -3,12 +3,14 @@ package com.example.ksis_3.websocket;
 import com.example.ksis_3.chatwebsocket.User;
 import lombok.Data;
 
+import java.util.UUID;
+
 public class GameUser extends User {
 
     private String userChoice;
 
-    public GameUser(String name) {
-        super(name);
+    public GameUser(String name, UUID uuid) {
+        super(name, uuid);
     }
 
     public String getUserChoice() {

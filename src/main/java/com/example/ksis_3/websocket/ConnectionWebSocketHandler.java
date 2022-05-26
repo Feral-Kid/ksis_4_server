@@ -1,5 +1,6 @@
 package com.example.ksis_3.websocket;
 
+import com.example.ksis_3.service.ChatWebSocketService;
 import com.example.ksis_3.service.GameWebSocketService;
 import com.example.ksis_3.service.impl.GameWebSocketServiceImpl;
 import com.google.gson.Gson;
@@ -17,9 +18,9 @@ public class ConnectionWebSocketHandler extends TextWebSocketHandler {
     private final Gson gson;
     private final GameWebSocketService socketService;
 
-    public ConnectionWebSocketHandler() {
+    public ConnectionWebSocketHandler(GameWebSocketService socketService) {
         this.gson = new Gson();
-        socketService = new GameWebSocketServiceImpl();
+        this.socketService = socketService;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.example.ksis_3.service.impl;
 
 import com.example.ksis_3.chatwebsocket.ChatMessage;
+import com.example.ksis_3.chatwebsocket.ChatUser;
 import com.example.ksis_3.chatwebsocket.Room;
 import com.example.ksis_3.exception.MessageSendException;
 import com.example.ksis_3.exception.RoomIsNotPresentException;
@@ -29,6 +30,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
         createRoom("Chat");
     }
 
+
     @Override
     public String getAllRooms() {
         return gson.toJson(this.rooms.stream().map(Room::getInfo).collect(Collectors.toList()));
@@ -47,7 +49,8 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
         return room;
     }
 
-    private Room findRoomById(UUID uuid) {
+    @Override
+    public Room findRoomById(UUID uuid) {
         Optional<Room> roomOptional = this.rooms.stream().filter(o -> o.getGroupID().equals(uuid)).findFirst();
         if (roomOptional.isPresent()) {
             return roomOptional.get();

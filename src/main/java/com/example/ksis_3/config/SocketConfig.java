@@ -1,7 +1,8 @@
 package com.example.ksis_3.config;
 
-import com.example.ksis_3.chatwebsocket.ChatWebSocket;
+import com.example.ksis_3.chatwebsocket.ChatWebSocketHandler;
 import com.example.ksis_3.service.ChatWebSocketService;
+import com.example.ksis_3.service.GameWebSocketService;
 import com.example.ksis_3.websocket.ConnectionWebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -13,16 +14,18 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class SocketConfig implements WebSocketConfigurer {
 
-    private final ChatWebSocketService service;
+    private final ChatWebSocketService chatWebSocketService;
+    private final GameWebSocketService gameWebSocketService;
 
     @Autowired
-    public SocketConfig(ChatWebSocketService service) {
-        this.service = service;
+    public SocketConfig(ChatWebSocketService chatWebSocketService, GameWebSocketService gameWebSocketService) {
+        this.chatWebSocketService = chatWebSocketService;
+        this.gameWebSocketService = gameWebSocketService;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new ConnectionWebSocketHandler(), "/websocket").setAllowedOrigins("*");
-        registry.addHandler(new ChatWebSocket(service), "/chat").setAllowedOrigins("*");
+        registry.addHandler(new ConnectionWebSocketHandler(gameWebSocketService), "/websocket").setAllowedOrigins("*");
+        registry.addHandler(new ChatWebSocketHandler(chatWebSocketService), "/chat").setAllowedOrigins("*");
     }
 }

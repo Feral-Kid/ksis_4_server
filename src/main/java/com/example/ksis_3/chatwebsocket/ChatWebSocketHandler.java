@@ -10,12 +10,12 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Slf4j
-public class ChatWebSocket extends TextWebSocketHandler {
+public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final ChatWebSocketService service;
     private final Gson gson;
 
-    public ChatWebSocket(ChatWebSocketService service) {
+    public ChatWebSocketHandler(ChatWebSocketService service) {
         this.service = service;
         gson = new Gson();;
     }

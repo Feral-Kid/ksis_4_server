@@ -1,12 +1,18 @@
 package com.example.ksis_3.service.impl;
 
+import com.example.ksis_3.chatwebsocket.ChatUser;
+import com.example.ksis_3.chatwebsocket.Room;
 import com.example.ksis_3.chatwebsocket.Session;
+import com.example.ksis_3.chatwebsocket.util.UUIDUtils;
+import com.example.ksis_3.exception.UserIsNotAHostException;
+import com.example.ksis_3.service.ChatWebSocketService;
 import com.example.ksis_3.service.GameWebSocketService;
 import com.example.ksis_3.websocket.GameUser;
 import com.example.ksis_3.websocket.SessionMessage;
 import com.example.ksis_3.websocket.UsersSession;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -15,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 
@@ -24,10 +31,22 @@ public class GameWebSocketServiceImpl implements GameWebSocketService {
     private final Gson gson = new Gson();
     private final List<UsersSession> usersSessions = new ArrayList<>();
     private final List<Session<GameUser>> users = new ArrayList<>();
+    private final ChatWebSocketService chatWebSocketService;
+
+    @Autowired
+    public GameWebSocketServiceImpl(ChatWebSocketService chatWebSocketService) {
+        this.chatWebSocketService = chatWebSocketService;
+    }
 
     @Override
     public void handleMessage(WebSocketSession session, SessionMessage sessionMessage) {
         log.info("handleTextMessage() executing");
+        if (sessionMessage.getSessionStatus().equals("start room game")) {
+            handleStartRoomGame(session, sessionMessage);
+        }
+        if (sessionMessage.getSessionStatus().equals("room game")) {
+            handleRoomGame(session, sessionMessage);
+        }
         if (sessionMessage.getSessionStatus().equals("start")) {
             addInQueue(session, sessionMessage.getUserName());
             findPartner();
@@ -37,9 +56,27 @@ public class GameWebSocketServiceImpl implements GameWebSocketService {
         }
     }
 
+    private void handleStartRoomGame(WebSocketSession session, SessionMessage sessionMessage) {
+        Room room = chatWebSocketService.findRoomById(UUIDUtils.getUUIDFromString(sessionMessage.getUserChoice()));
+        ChatUser host = room.getHost();
+        if (!host.getUuid().equals(UUID.fromString(sessionMessage.getUserName()))) {
+            throw new UserIsNotAHostException(String.format("User with name: %s isn't host", host.getName()));
+        }
+        room.addGameUser(new Session<>(session, new GameUser(host.getName(), UUID.fromString(session.getId()))));
+    }
+
+    private void handleRoomGame(WebSocketSession session, SessionMessage sessionMessage) {
+        Room room = chatWebSocketService.findRoomById(UUIDUtils.getUUIDFromString(sessionMessage.getUserChoice()));
+        ChatUser user = room.findUserById(UUIDUtils.getUUIDFromString(session.getId()));
+        room.addGameUser(new Session<>(session, new GameUser(user.getName(), UUID.fromString(session.getId()))));
+        if (room.isGameStarted()) {
+            addSessionPairAndSendMessage(new UsersSession(room.getGameUsers().get(0), room.getGameUsers().get(1)));
+        }
+    }
+
     private void addInQueue(WebSocketSession session, String userName) {
         if (userName != null && !userName.isBlank()) {
-            users.add(new Session<>(session, new GameUser(userName)));
+            users.add(new Session<>(session, new GameUser(userName, UUID.fromString(session.getId()))));
             log.info("Connected with user: " + userName);
         }
     }

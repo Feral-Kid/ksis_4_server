@@ -1,5 +1,9 @@
 package com.example.ksis_3.chatwebsocket;
 
+import com.example.ksis_3.chatwebsocket.util.UUIDUtils;
+import com.example.ksis_3.exception.UserIsNotAHostException;
+import com.example.ksis_3.exception.UserIsNotPresentException;
+import com.example.ksis_3.websocket.GameUser;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.WebSocketSession;
@@ -8,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class Room {
@@ -15,17 +20,44 @@ public class Room {
     private final UUID groupID;
     private final Gson gson;
     private String name;
+    private boolean isGameStarted;
     private final List<Session<ChatUser>> users = new ArrayList<>();
     private final List<ChatMessage> history = new ArrayList<>();
+    private final List<Session<GameUser>> gameUsers = new ArrayList<>();
+
     private Session<ChatUser> host;
 
     public UUID getGroupID() {
         return groupID;
     }
 
+    public boolean isGameStarted() {
+        return this.gameUsers.size() == this.users.size();
+    }
+
+    public void addGameUser(Session<GameUser> gameUser) {
+        this.gameUsers.add(gameUser);
+    }
+
+    public List<Session<GameUser>> getGameUsers() {
+        return gameUsers;
+    }
+
+    public void setGameStarted(boolean gameStarted) {
+        isGameStarted = gameStarted;
+    }
+
+    public List<ChatUser> getAllUsers() {
+        return this.users.stream().map(Session::getUser).collect(Collectors.toList());
+    }
+
     public Room(Gson gson) {
         this.gson = gson;
         groupID = UUID.randomUUID();
+    }
+
+    public ChatUser getHost() {
+        return host.getUser();
     }
 
     public String getName() {
@@ -36,11 +68,20 @@ public class Room {
         this.name = name;
     }
 
+    public void setHost(Session<ChatUser> host) {
+        this.host = host;
+    }
+
     private void addUser(Session<ChatUser> user) {
         this.users.add(user);
         if (host == null) {
             host = user;
         }
+    }
+
+    public ChatUser findUserById(UUID uuid) {
+        Session<ChatUser> chatUser = users.stream().filter(o -> o.getUser().getUuid().equals(uuid)).findFirst().orElseThrow(() -> new UserIsNotPresentException(String.format("User with id: %s is not present", uuid.toString())));
+        return chatUser.getUser();
     }
 
     private Optional<Session<ChatUser>> findUserBySession(WebSocketSession session) {
@@ -69,7 +110,7 @@ public class Room {
         log.info(String
                 .format("User with name: %s is joined",
                         message.getUserName()));
-        Session<ChatUser> newUser = new Session<>(session, new ChatUser(message.getUserName()));
+        Session<ChatUser> newUser = new Session<>(session, new ChatUser(message.getUserName(), UUIDUtils.getUUIDFromString(session.getId())));
         addUser(newUser);
         ChatMessage newMessage = ChatMessage.builder()
                 .userMessage(message.getUserMessage())
@@ -112,7 +153,7 @@ public class Room {
     }
 
     public void startGame() {
-
+        
     }
 
     public String getChatHistoryAsJSON() {
@@ -131,6 +172,8 @@ public class Room {
             if (optionalChatUserSession.isPresent()) {
                 if (optionalChatUserSession.get() == host) {
                     startGame();
+                } else {
+                    throw new UserIsNotAHostException(String.format("User with name: %s isn't host", optionalChatUserSession.get().getUser().getName()));
                 }
             }
         }
