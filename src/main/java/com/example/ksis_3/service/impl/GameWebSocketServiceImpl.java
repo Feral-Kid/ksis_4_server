@@ -59,9 +59,9 @@ public class GameWebSocketServiceImpl implements GameWebSocketService {
     private void handleStartRoomGame(WebSocketSession session, SessionMessage sessionMessage) {
         Room room = chatWebSocketService.findRoomById(UUIDUtils.getUUIDFromString(sessionMessage.getUserChoice()));
         ChatUser host = room.getHost();
-        if (!host.getUuid().equals(UUID.fromString(sessionMessage.getUserName()))) {
-            throw new UserIsNotAHostException(String.format("User with name: %s isn't host", host.getName()));
-        }
+//        if (!host.getUuid().equals(UUID.fromString(sessionMessage.getUserName()))) {
+//            throw new UserIsNotAHostException(String.format("User with name: %s isn't host", host.getName()));
+//        }
         room.addGameUser(new Session<>(session, new GameUser(host.getName(), UUID.fromString(session.getId()))));
     }
 
