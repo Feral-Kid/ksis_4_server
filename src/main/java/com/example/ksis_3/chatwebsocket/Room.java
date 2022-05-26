@@ -108,8 +108,8 @@ public class Room {
 
     public void startConnection(ChatMessage message, WebSocketSession session) {
         log.info(String
-                .format("User with name: %s is joined",
-                        message.getUserName()));
+                .format("User with name: %s is joined in room with name: %s",
+                        message.getUserName(), this.name));
         Session<ChatUser> newUser = new Session<>(session, new ChatUser(message.getUserName(), UUIDUtils.getUUIDFromString(session.getId())));
         addUser(newUser);
         ChatMessage newMessage = ChatMessage.builder()
@@ -136,7 +136,7 @@ public class Room {
         if (optionalChatUserSession.isPresent()) {
             ChatUser user = optionalChatUserSession.get().getUser();
             log.info(String
-                    .format("User with name: %s send message: %s", user.getName(), message.getUserMessage()));
+                    .format("User with name: %s send message: %s in room: %s", user.getName(), message.getUserMessage(), this.name));
             ChatMessage newMessage = ChatMessage.builder()
                     .userMessage(message.getUserMessage())
                     .userName(user.getName())
@@ -153,7 +153,7 @@ public class Room {
     }
 
     public void startGame() {
-        
+
     }
 
     public String getChatHistoryAsJSON() {
@@ -203,7 +203,7 @@ public class Room {
         Optional<Session<ChatUser>> optionalChatUserSession = findUserBySession(session);
         if (optionalChatUserSession.isPresent()) {
             ChatUser user = optionalChatUserSession.get().getUser();
-            log.info(String.format("Connection closed for user with name: %s", user.getName()));
+            log.info(String.format("Connection closed for user with name: %s in room with name: %s", user.getName(), this.name));
             removeUser(optionalChatUserSession.get());
             sendMessageToAllUsers(ChatMessage.builder()
                     .userMessage("")
