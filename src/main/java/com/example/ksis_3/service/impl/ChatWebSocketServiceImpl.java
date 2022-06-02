@@ -42,6 +42,11 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
         return room.getChatHistoryAsJSON();
     }
 
+    @Override
+    public String getRoomInfoById(UUID uuid) {
+        return gson.toJson(findRoomById(uuid));
+    }
+
     private Room createRoom(ChatMessage message) {
         Room room = new Room(this.gson);
         room.setName(message.getUserName());

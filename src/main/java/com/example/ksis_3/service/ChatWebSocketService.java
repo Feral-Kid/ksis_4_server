@@ -14,6 +14,8 @@ public interface ChatWebSocketService {
 
     Room findRoomById(UUID uuid);
 
+    String getRoomInfoById(UUID uuid);
+
     void handleMessage(WebSocketSession session, ChatMessage message);
 
     void terminateConnection(WebSocketSession session);

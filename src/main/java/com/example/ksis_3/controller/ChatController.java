@@ -1,5 +1,6 @@
 package com.example.ksis_3.controller;
 
+import com.example.ksis_3.chatwebsocket.util.UUIDUtils;
 import com.example.ksis_3.service.ChatWebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,11 @@ public class ChatController {
     @Autowired
     public ChatController(ChatWebSocketService service) {
         this.service = service;
+    }
+
+    @GetMapping("/getRoom/{id}")
+    public String getRoomById(@PathVariable String id) {
+        return service.getRoomInfoById(UUIDUtils.getUUIDFromString(id));
     }
 
     @GetMapping("/getAllRooms")
