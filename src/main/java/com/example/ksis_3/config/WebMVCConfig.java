@@ -14,6 +14,7 @@ public class WebMVCConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/message/getHistory/*").allowedOrigins("*");
                 registry.addMapping("/message/getAllRooms").allowedOrigins("*");
+                registry.addMapping("/message/getRoom/*").allowedOrigins("*");
             }
         };
     }
