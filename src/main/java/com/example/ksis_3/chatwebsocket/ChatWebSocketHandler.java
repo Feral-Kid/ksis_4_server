@@ -1,8 +1,9 @@
 package com.example.ksis_3.chatwebsocket;
 
+import com.example.ksis_3.chatwebsocket.util.MessageParser;
 import com.example.ksis_3.service.ChatWebSocketService;
+import com.example.ksis_3.websocket.SessionMessage;
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -31,16 +32,23 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         log.info("handleTextMessage() executing");
         ChatMessage sessionMessage;
         try {
-            sessionMessage = gson.fromJson(message.getPayload(), ChatMessage.class);
+            sessionMessage = MessageParser.parse(message.getPayload(), ChatMessage.class, gson);
             service.handleMessage(session, sessionMessage);
-        } catch (JsonSyntaxException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            if (session.isOpen()) {
+                session.sendMessage(new TextMessage(gson.toJson(ChatMessage.builder().type("Exception").userMessage(e.getMessage()).build())));
+            }
         }
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
-        service.terminateConnection(session);
+        try {
+            service.terminateConnection(session);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

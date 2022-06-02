@@ -4,7 +4,6 @@ import com.example.ksis_3.chatwebsocket.ChatUser;
 import com.example.ksis_3.chatwebsocket.Room;
 import com.example.ksis_3.chatwebsocket.Session;
 import com.example.ksis_3.chatwebsocket.util.UUIDUtils;
-import com.example.ksis_3.exception.UserIsNotAHostException;
 import com.example.ksis_3.service.ChatWebSocketService;
 import com.example.ksis_3.service.GameWebSocketService;
 import com.example.ksis_3.websocket.GameUser;
@@ -40,7 +39,6 @@ public class GameWebSocketServiceImpl implements GameWebSocketService {
 
     @Override
     public void handleMessage(WebSocketSession session, SessionMessage sessionMessage) {
-        log.info("handleTextMessage() executing");
         if (sessionMessage.getSessionStatus().equals("start room game")) {
             handleStartRoomGame(session, sessionMessage);
         }
@@ -71,6 +69,9 @@ public class GameWebSocketServiceImpl implements GameWebSocketService {
         room.addGameUser(new Session<>(session, new GameUser(user.getName(), UUID.fromString(session.getId()))));
         if (room.isGameStarted()) {
             addSessionPairAndSendMessage(new UsersSession(room.getGameUsers().get(0), room.getGameUsers().get(1)));
+            log.info(String
+                    .format("User with name: %s and user with name: %s is connected",
+                            room.getGameUsers().get(0).getUser().getName(), room.getGameUsers().get(0).getUser().getName()));
         }
     }
 
@@ -158,6 +159,7 @@ public class GameWebSocketServiceImpl implements GameWebSocketService {
     }
 
     public void startGame(WebSocketSession session, String userChoice) {
+        log.info("startGame() method executing");
         Optional<UsersSession> userSessionsPairOptional = usersSessions.stream()
                 .filter( o -> ((o.getFirstUser().getSession() == session) || (o.getSecondUser().getSession() == session))).findFirst();
         if (userSessionsPairOptional.isPresent()) {

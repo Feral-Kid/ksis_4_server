@@ -20,7 +20,6 @@ public class Room {
     private final UUID groupID;
     private final Gson gson;
     private String name;
-    private boolean isGameStarted;
     private final List<Session<ChatUser>> users = new ArrayList<>();
     private final List<ChatMessage> history = new ArrayList<>();
     private final List<Session<GameUser>> gameUsers = new ArrayList<>();
@@ -43,10 +42,6 @@ public class Room {
         return gameUsers;
     }
 
-    public void setGameStarted(boolean gameStarted) {
-        isGameStarted = gameStarted;
-    }
-
     public List<ChatUser> getAllUsers() {
         return this.users.stream().map(Session::getUser).collect(Collectors.toList());
     }
@@ -66,10 +61,6 @@ public class Room {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public void setHost(Session<ChatUser> host) {
-        this.host = host;
     }
 
     private void addUser(Session<ChatUser> user) {

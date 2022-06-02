@@ -7,13 +7,8 @@ import org.springframework.web.socket.WebSocketSession;
 
 @Service
 public interface GameWebSocketService {
+
     void afterConnectionClosed(WebSocketSession session);
-
-    void addSessionPairAndSendMessage(UsersSession pair);
-
-    UsersSession terminateSession(WebSocketSession session);
-
-    void startGame(WebSocketSession session, String userChoice);
 
     void handleMessage(WebSocketSession session, SessionMessage sessionMessage);
 

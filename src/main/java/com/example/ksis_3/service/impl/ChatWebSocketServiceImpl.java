@@ -1,7 +1,6 @@
 package com.example.ksis_3.service.impl;
 
 import com.example.ksis_3.chatwebsocket.ChatMessage;
-import com.example.ksis_3.chatwebsocket.ChatUser;
 import com.example.ksis_3.chatwebsocket.Room;
 import com.example.ksis_3.exception.MessageSendException;
 import com.example.ksis_3.exception.RoomIsNotPresentException;

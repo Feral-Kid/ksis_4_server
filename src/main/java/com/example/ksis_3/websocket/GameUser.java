@@ -1,7 +1,6 @@
 package com.example.ksis_3.websocket;
 
 import com.example.ksis_3.chatwebsocket.User;
-import lombok.Data;
 
 import java.util.UUID;
 

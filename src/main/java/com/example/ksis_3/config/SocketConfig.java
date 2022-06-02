@@ -3,7 +3,7 @@ package com.example.ksis_3.config;
 import com.example.ksis_3.chatwebsocket.ChatWebSocketHandler;
 import com.example.ksis_3.service.ChatWebSocketService;
 import com.example.ksis_3.service.GameWebSocketService;
-import com.example.ksis_3.websocket.ConnectionWebSocketHandler;
+import com.example.ksis_3.websocket.GameWebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -25,7 +25,7 @@ public class SocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new ConnectionWebSocketHandler(gameWebSocketService), "/websocket").setAllowedOrigins("*");
+        registry.addHandler(new GameWebSocketHandler(gameWebSocketService), "/websocket").setAllowedOrigins("*");
         registry.addHandler(new ChatWebSocketHandler(chatWebSocketService), "/chat").setAllowedOrigins("*");
     }
 }

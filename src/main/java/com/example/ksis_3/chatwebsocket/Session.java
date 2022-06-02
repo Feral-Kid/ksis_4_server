@@ -1,7 +1,6 @@
 package com.example.ksis_3.chatwebsocket;
 
 import com.example.ksis_3.exception.MessageSendException;
-import com.example.ksis_3.websocket.SessionMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 

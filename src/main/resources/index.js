@@ -25,8 +25,10 @@ let message = {
     userId: "",
     groupId: "",
     userMessage: "",
-    type: ""
+    type: "",
+    data: ""
 }
+
 chatSocket.onopen = (e) => {
     message['userName'] = "Yura"
     message['type'] = "start"
