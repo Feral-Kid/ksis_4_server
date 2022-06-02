@@ -3,6 +3,7 @@ package com.example.ksis_3.service.impl;
 import com.example.ksis_3.chatwebsocket.ChatMessage;
 import com.example.ksis_3.chatwebsocket.Room;
 import com.example.ksis_3.exception.MessageSendException;
+import com.example.ksis_3.exception.ParseException;
 import com.example.ksis_3.exception.RoomIsNotPresentException;
 import com.example.ksis_3.service.ChatWebSocketService;
 import com.google.gson.Gson;
@@ -26,7 +27,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
     private final Gson gson = new Gson();
 
     public ChatWebSocketServiceImpl() {
-        createRoom("Chat");
+        createRoom(ChatMessage.builder().userName("chat").userId("0").userMessage("100").build());
     }
 
 
@@ -41,9 +42,11 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
         return room.getChatHistoryAsJSON();
     }
 
-    private Room createRoom(String name) {
+    private Room createRoom(ChatMessage message) {
         Room room = new Room(this.gson);
-        room.setName(name);
+        room.setName(message.getUserName());
+        room.setMaxUserCount(Integer.parseInt(message.getUserMessage()));
+        room.setMinUserCount(Integer.parseInt(message.getUserId()));
         this.rooms.add(room);
         return room;
     }
@@ -61,7 +64,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
     @Override
     public void handleMessage(WebSocketSession session, ChatMessage message) {
         if (message.getType().equals("create room")) {
-            Room newRoom = createRoom(message.getUserName());
+            Room newRoom = createRoom(message);
             try {
                 session.sendMessage(new TextMessage(
                         gson.toJson

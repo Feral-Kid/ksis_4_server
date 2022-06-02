@@ -1,6 +1,8 @@
 package com.example.ksis_3.chatwebsocket;
 
 import com.example.ksis_3.chatwebsocket.util.UUIDUtils;
+import com.example.ksis_3.exception.NotEnoughtPlayersException;
+import com.example.ksis_3.exception.RoomIsFullException;
 import com.example.ksis_3.exception.UserIsNotAHostException;
 import com.example.ksis_3.exception.UserIsNotPresentException;
 import com.example.ksis_3.websocket.GameUser;
@@ -19,12 +21,30 @@ public class Room {
 
     private final UUID groupID;
     private final Gson gson;
+    private int minUserCount;
+    private int maxUserCount;
     private String name;
     private final List<Session<ChatUser>> users = new ArrayList<>();
     private final List<ChatMessage> history = new ArrayList<>();
     private final List<Session<GameUser>> gameUsers = new ArrayList<>();
 
     private Session<ChatUser> host;
+
+    public int getMinUserCount() {
+        return minUserCount;
+    }
+
+    public void setMinUserCount(int minUserCount) {
+        this.minUserCount = minUserCount;
+    }
+
+    public int getMaxUserCount() {
+        return maxUserCount;
+    }
+
+    public void setMaxUserCount(int maxUserCount) {
+        this.maxUserCount = maxUserCount;
+    }
 
     public UUID getGroupID() {
         return groupID;
@@ -64,6 +84,9 @@ public class Room {
     }
 
     private void addUser(Session<ChatUser> user) {
+        if (this.users.size() == this.maxUserCount) {
+            throw new RoomIsFullException(String.format("Can not add new user. Max count users in room: %d, current users count: %d", maxUserCount, users.size()));
+        }
         this.users.add(user);
         if (host == null) {
             host = user;
@@ -94,7 +117,12 @@ public class Room {
     }
 
     public RoomInfo getInfo() {
-        return RoomInfo.builder().name(this.name).UUID(this.groupID.toString()).build();
+        return RoomInfo.builder()
+                .name(this.name)
+                .minPeopleCount(String.valueOf(this.minUserCount))
+                .maxPeopleCount(String.valueOf(this.maxUserCount))
+                .currentPeopleCount(String.valueOf(this.users.size()))
+                .UUID(this.groupID.toString()).build();
     }
 
     public void startConnection(ChatMessage message, WebSocketSession session) {
@@ -169,7 +197,11 @@ public class Room {
             Optional<Session<ChatUser>> optionalChatUserSession = findUserBySession(session);
             if (optionalChatUserSession.isPresent()) {
                 if (optionalChatUserSession.get() == host) {
-                    startGame(host);
+                    if (this.users.size() >= minUserCount) {
+                        startGame(host);
+                    } else {
+                        throw new NotEnoughtPlayersException(String.format("Can not start the game, min players allowed: %d, current players count: %d", minUserCount, users.size()));
+                    }
                 } else {
                     throw new UserIsNotAHostException(String.format("User with name: %s isn't host", optionalChatUserSession.get().getUser().getName()));
                 }

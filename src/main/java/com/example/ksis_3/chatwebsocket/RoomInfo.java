@@ -8,4 +8,7 @@ import lombok.Value;
 public class RoomInfo {
     String name;
     String UUID;
+    String maxPeopleCount;
+    String minPeopleCount;
+    String currentPeopleCount;
 }
