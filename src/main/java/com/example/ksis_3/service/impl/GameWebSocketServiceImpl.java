@@ -130,7 +130,7 @@ public class GameWebSocketServiceImpl implements GameWebSocketService {
     public UsersSession terminateSession(WebSocketSession session) {
         Optional<UsersSession> userSessionsPairOptional = usersSessions.stream()
                 .filter( o -> ((o.getFirstUser().getSession() == session) || (o.getSecondUser().getSession() == session))).findFirst();
-        if (userSessionsPairOptional.isEmpty()) {
+        if (!userSessionsPairOptional.isPresent()) {
             return null;
         } else {
             UsersSession userSessionsPair = userSessionsPairOptional.get();
