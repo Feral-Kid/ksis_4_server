@@ -1,24 +1,12 @@
 package com.example.ksis_3.tictactoewebsocket;
 
-import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
+import com.example.ksis_3.service.GameWebSocketService;
+import com.example.ksis_3.websocket.GameWebSocketHandler;
 
-public class ticTacToeWebSocket extends TextWebSocketHandler {
+public class ticTacToeWebSocket extends GameWebSocketHandler {
 
-    @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        super.afterConnectionEstablished(session);
+    public ticTacToeWebSocket(GameWebSocketService socketService) {
+        super(socketService);
     }
 
-    @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        super.handleTextMessage(session, message);
-    }
-
-    @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        super.afterConnectionClosed(session, status);
-    }
 }

@@ -27,8 +27,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class GameWebSocketServiceImpl implements GameWebSocketService {
-    private final Gson gson = new Gson();
-    private final List<UsersSession> usersSessions = new ArrayList<>();
+    protected final Gson gson = new Gson();
+    protected final List<UsersSession> usersSessions = new ArrayList<>();
     private final List<Session<GameUser>> users = new ArrayList<>();
     private final ChatWebSocketService chatWebSocketService;
 
@@ -159,47 +159,6 @@ public class GameWebSocketServiceImpl implements GameWebSocketService {
     }
 
     public void startGame(WebSocketSession session, String userChoice) {
-        log.info("startGame() method executing");
-        Optional<UsersSession> userSessionsPairOptional = usersSessions.stream()
-                .filter( o -> ((o.getFirstUser().getSession() == session) || (o.getSecondUser().getSession() == session))).findFirst();
-        if (userSessionsPairOptional.isPresent()) {
-            UsersSession userSessionsPair = userSessionsPairOptional.get();
-            Session<GameUser> firstUserSession = userSessionsPair.getFirstUser();
-            Session<GameUser> secondUserSession = userSessionsPair.getSecondUser();
-            if (firstUserSession.getSession() == session) {
-                if (!(secondUserSession.getUser().getUserChoice() == null)) {
-                    try {
-                        firstUserSession.getSession()
-                                .sendMessage(new TextMessage(gson
-                                        .toJson(new SessionMessage(secondUserSession.getUser().getName(), secondUserSession.getUser().getUserChoice(), "game"))));
-                        secondUserSession.getSession()
-                                .sendMessage(new TextMessage(gson.toJson(new SessionMessage(firstUserSession.getUser().getName(), userChoice, "game"))));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    secondUserSession.getUser().setUserChoice(null);
-                    firstUserSession.getUser().setUserChoice(null);
-                } else {
-                    firstUserSession.getUser().setUserChoice(userChoice);
-                }
-            }
-            if (secondUserSession.getSession() == session) {
-                if (!(firstUserSession.getUser().getUserChoice() == null)) {
-                    try {
-                        firstUserSession.getSession()
-                                .sendMessage(new TextMessage(gson
-                                        .toJson(new SessionMessage(secondUserSession.getUser().getName(), userChoice, "game"))));
-                        secondUserSession.getSession()
-                                .sendMessage(new TextMessage(gson.toJson(new SessionMessage(firstUserSession.getUser().getName(), firstUserSession.getUser().getUserChoice(), "game"))));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    secondUserSession.getUser().setUserChoice(null);
-                    firstUserSession.getUser().setUserChoice(null);
-                } else {
-                    secondUserSession.getUser().setUserChoice(userChoice);
-                }
-            }
-        }
+
     }
 }
