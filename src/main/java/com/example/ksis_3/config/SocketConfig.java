@@ -30,6 +30,6 @@ public class SocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(new GameWebSocketHandler(new RPKGameWebSocketImpl(chatWebSocketService)), "/websocket").setAllowedOrigins("*");
         registry.addHandler(new ChatWebSocketHandler(chatWebSocketService), "/chat").setAllowedOrigins("*");
-        registry.addHandler(new ticTacToeWebSocket(new TTTGameWebSocketImpl(chatWebSocketService)), "/chat").setAllowedOrigins("*");
+        registry.addHandler(new ticTacToeWebSocket(new TTTGameWebSocketImpl(chatWebSocketService)), "/TTTWebSocket").setAllowedOrigins("*");
     }
 }
