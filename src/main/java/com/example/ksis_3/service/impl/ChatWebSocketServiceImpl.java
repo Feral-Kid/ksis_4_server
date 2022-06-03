@@ -86,7 +86,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
             }
         } else {
             Room room;
-            if (message.getGroupId().isBlank()) {
+            if (message.getGroupId().equals("")) {
                 room = this.rooms.get(0);
             } else {
                 room = findRoomById(UUID.fromString(message.getGroupId()));

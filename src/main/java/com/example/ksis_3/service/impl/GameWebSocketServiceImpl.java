@@ -76,7 +76,7 @@ public class GameWebSocketServiceImpl implements GameWebSocketService {
     }
 
     private void addInQueue(WebSocketSession session, String userName) {
-        if (userName != null && !userName.isBlank()) {
+        if (userName != null) {
             users.add(new Session<>(session, new GameUser(userName, UUID.fromString(session.getId()))));
             log.info("Connected with user: " + userName);
         }
